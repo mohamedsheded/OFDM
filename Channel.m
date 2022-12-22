@@ -12,7 +12,9 @@ function [RX_Symbols1 , RX_Symbols2] = Channel(TX_Symbols , SNR , channelmode , 
 
   L = 50;  % Fading channel delay
 
-  if channelmode == 1
+switch channelmode
+    
+  case 1
     % case 1 AWGN only
     RX_Symbols1 = awgn(TX_Symbols, SNR);  % adding noise to the signal
     if no_outputs == 2
@@ -20,15 +22,19 @@ function [RX_Symbols1 , RX_Symbols2] = Channel(TX_Symbols , SNR , channelmode , 
     else
       RX_Symbols2 = 0;
     end
-  elseif channelmode == 2
+    
+  case 2
     % case 2 AWGN with deterministic fading channel realization
     h1 = 1 / sqrt(2 * L) * (randn(1, L) + 1i * randn(1, L)); % calculating channel gain
-    RX_Symbols1 = awgn(TX_Symbols .* h1, SNR); % adding noise and channel gain to the signal
+    TX_Symbols_conv = conv(TX_Symbols, h1);
+    RX_Symbols1 = awgn(TX_Symbols_conv, SNR); % adding noise and channel gain to the signal
     if no_outputs == 2
       h2 = 1 / sqrt(2 * L) * (randn(1, L) + 1i * randn(1, L)); % calculating channel gain
-      RX_Symbols2 = awgn(TX_Symbols .* h2, SNR); % adding noise and channel gain to the signal
+      TX_Symbols_conv = conv(TX_Symbols, h2);
+      RX_Symbols2 = awgn(TX_Symbols_conv, SNR); % adding noise and channel gain to the signal
     else
       RX_Symbols2 = 0;
     end
-  end
+%   otherwise
+%     % code to be executed if channelmode is not 1 or 2
 end
