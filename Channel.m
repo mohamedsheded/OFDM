@@ -1,4 +1,4 @@
-function [RX_Symbols1 , RX_Symbols2] = Channel(TX_Symbols , SNR , channelmode , no_outputs)
+function [RX_Symbols1 , RX_Symbols2,h1,h2] = Channel(TX_Symbols , SNR , channelmode , no_outputs)
 % Adds the channel effect to the transmited signal
 %
 % Inputs:
