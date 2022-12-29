@@ -6,9 +6,9 @@ close all;
 
 %Simulation Parameters
 EbNo_range=[0:3:40];                            %Eb/No range of simulation dB
-NumberFramesPerSNR=1000;                         %Number of frames sent for every SNR value
-ModulationOrder=4;                              %The number of sent waveforms (M)
-NumberBitsPerFrame=100*log2(ModulationOrder);   %Number of bits sent for every frame
+NumberFramesPerSNR=100;                         %Number of frames sent for every SNR value
+ModulationOrder=64;                              %The number of sent waveforms (M)
+NumberBitsPerFrame=floor((1024*log2(ModulationOrder)/7)*4)-4;   %Number of bits sent for every frame
 %Modulation type 1:MASK, 2:MPSK, 3:MQAM
 
 
@@ -75,13 +75,13 @@ for EbNo=EbNo_range
         %----------------------------Channel part----------------------
         %---------------------------------------------------------------------
         Symbol_stream_Transformed=ifft(Symbol_stream,1024);
-        Transmitted_Signal = cyclic_prefix(Symbol_stream_Transformed, 49);
+  Transmitted_Signal = cyclic_prefix(Symbol_stream_Transformed, 50);
         
-        
-        [output_data , RX_Symbols2,h1] = Channel(Transmitted_Signal , EbNo , 2 , 1);
-        afterchannelsignal=output_data;
-        
-        
+%         
+    [output_data , RX_Symbols2,h1] = Channel(Transmitted_Signal , EbNo , 2 , 1);
+     afterchannelsignal=output_data;
+%         
+
         
         
         
@@ -90,12 +90,13 @@ for EbNo=EbNo_range
         
         
         % Receiver %%%%%%%%%%%%%%%%%%%%%%
-        OFDM_Symbols_PREFFT = CP_Remove(afterchannelsignal,49);
-        OFDM_Symbols_Postfft=fft(OFDM_Symbols_PREFFT,1024);
+        OFDM_Symbols_PREFFT = CP_Remove(afterchannelsignal,50);
+        OFDM_Symbols_Post=fft(OFDM_Symbols_PREFFT);
+ channelEffect= fft(h1  , 1024);
+   OFDM_Symbols=(OFDM_Symbols_Post.')./channelEffect;
         
-        OFDM_Symbols=OFDM_Symbols_Postfft(1:length(Symbol_stream));
-        
-        
+       
+%         (1:length(encoder_output_stream));
         
         
         
@@ -105,7 +106,9 @@ for EbNo=EbNo_range
         %-------------------decoding recived codeword----------------------
         %-------------------------------------------------------------------------
         decoder_input_stream = ReceivedBits;
-        
+%    if decoder_input_stream==encoder_output_stream
+%        1
+%    end
         num_blocks_decoded = floor(length(decoder_input_stream)/7);
         
         blocks_decode = reshape(decoder_input_stream, 7, num_blocks_decoded)';

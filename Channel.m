@@ -44,5 +44,7 @@ switch channelmode
     else
       RX_Symbols2 = 0;
     end
-
+    
+       
 end
+

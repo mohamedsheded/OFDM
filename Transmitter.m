@@ -1,16 +1,21 @@
 function [TransmittedSignal] = Transmitter(ModulationOrder,NumberBitsPerFrame,Bits)
 
-        
+         num_zeros = log2(ModulationOrder)-mod(length(Bits), log2(ModulationOrder));
+        if num_zeros ==log2(ModulationOrder)
+            num_zeros=0;
+        end
+        bit_stream_padded = padarray(Bits, [0 num_zeros], 0, 'post');
+     
       
         
         % Obtaining Symbol bits
-        SymbolBits=reshape(Bits,log2(ModulationOrder),NumberBitsPerFrame/log2(ModulationOrder))';
+        SymbolBits=reshape(bit_stream_padded,log2(ModulationOrder),[])';
         
         
 
         %% Transmitter Branch 1
         % Taking first log2(M)/2 bits to branch 1
-        SymbolBits_branch1=(1/sqrt(2))*SymbolBits(:,[1:log2(ModulationOrder)/2]);
+        SymbolBits_branch1=SymbolBits(:,[1:log2(ModulationOrder)/2]);
       
         % Transforming bits into intgers: bianry to decimal conversion
         %Qpsk
@@ -20,11 +25,11 @@ function [TransmittedSignal] = Transmitter(ModulationOrder,NumberBitsPerFrame,Bi
         %16 QAM
         elseif ModulationOrder==16
             SymbolIndex_branch1=2*SymbolBits_branch1(:,1)+SymbolBits_branch1(:,2)+1;
-            OutputModulator_branch1=(1/sqrt(2))*(2*(SymbolIndex_branch1)-1-(sqrt(ModulationOrder)));
+            OutputModulator_branch1=(2*(SymbolIndex_branch1)-1-(sqrt(ModulationOrder)));
         %64 QAM
         elseif ModulationOrder==64
             SymbolIndex_branch1=(4*SymbolBits_branch1(:,1)+2*SymbolBits_branch1(:,2)+SymbolBits_branch1(:,3))+1;
-            OutputModulator_branch1=(1/sqrt(2))*(2*(SymbolIndex_branch1)-1-(sqrt(ModulationOrder)));
+            OutputModulator_branch1=(2*(SymbolIndex_branch1)-1-(sqrt(ModulationOrder)));
         % Symbol modulation using ASK modulation
         end
 
@@ -38,12 +43,12 @@ function [TransmittedSignal] = Transmitter(ModulationOrder,NumberBitsPerFrame,Bi
         %16 QAM    
         elseif ModulationOrder==16
             SymbolIndex_branch2=2*SymbolBits_branch2(:,1)+SymbolBits_branch2(:,2)+1;
-            OutputModulator_branch2=(1/sqrt(2))*(2*(SymbolIndex_branch2)-1-(sqrt(ModulationOrder)));
+            OutputModulator_branch2=(2*(SymbolIndex_branch2)-1-(sqrt(ModulationOrder)));
             
     %64 QAM
         elseif ModulationOrder==64    
              SymbolIndex_branch2=(4*SymbolBits_branch2(:,1)+2*SymbolBits_branch2(:,2)+SymbolBits_branch2(:,3))+1;
-             OutputModulator_branch2=(1/sqrt(2))*(2*(SymbolIndex_branch2)-1-(sqrt(ModulationOrder)));  
+             OutputModulator_branch2=(2*(SymbolIndex_branch2)-1-(sqrt(ModulationOrder)));  
         end
           
         %% Transmitted Signal
