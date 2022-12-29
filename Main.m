@@ -91,9 +91,9 @@ for EbNo=EbNo_range
         
         % Receiver %%%%%%%%%%%%%%%%%%%%%%
         OFDM_Symbols_PREFFT = CP_Remove(afterchannelsignal,49);
-        OFDM_Symbols_PostOFDM=fft(OFDM_Symbols_PR,1024);
+        OFDM_Symbols_Postfft=fft(OFDM_Symbols_PREFFT,1024);
         
-        OFDM_Symbols=OFDM_Symbols_PostOFDM(1:length(Symbol_stream));
+        OFDM_Symbols=OFDM_Symbols_Postfft(1:length(Symbol_stream));
         
         
         
