@@ -8,6 +8,6 @@ end
 prefix = OFDM_symbols(end-prefix_length+1:end);
     
 % Append the prefix to the beginning of input_data
-output_data = [prefix OFDM_symbols];
+output_data = [prefix ; OFDM_symbols];
 end
 
