@@ -6,7 +6,7 @@ close all;
 
 %Simulation Parameters
 EbNo_range=[0:3:40];                            %Eb/No range of simulation dB
-NumberFramesPerSNR=1000;                         %Number of frames sent for every SNR value
+NumberFramesPerSNR=100;                         %Number of frames sent for every SNR value
 ModulationOrder=16;                              %The number of sent waveforms (M)
 NumberBitsPerFrame=floor((1024*log2(ModulationOrder)/7)*4)-4;   %Number of bits sent for every frame
 %Modulation type 1:MASK, 2:MPSK, 3:MQAM
@@ -74,7 +74,7 @@ for EbNo=EbNo_range
         %-------------------------------------------------------------------------
         %----------------------------Channel part----------------------
         %---------------------------------------------------------------------
-        Symbol_stream_Transformed=ifft(Symbol_stream,1024);
+        Symbol_stream_Transformed=ifft(Symbol_stream.*sqrt(1024),1024);
   Transmitted_Signal = cyclic_prefix(Symbol_stream_Transformed, 50);
         
 %         
@@ -84,14 +84,14 @@ for EbNo=EbNo_range
 
       if NoOfOp==1
         OFDM_Symbols_PREFFT = CP_Remove(afterchannelsignal1,50);
-        OFDM_Symbols_Post=fft(OFDM_Symbols_PREFFT);
+        OFDM_Symbols_Post=fft(OFDM_Symbols_PREFFT./sqrt(1024));
  channelEffect= fft(h1  , 1024);
    OFDM_Symbols=(OFDM_Symbols_Post.')./channelEffect;
       else 
         % Receiver %%%%%%%%%%%%%%%%%%%%%%
         if mean(h1)>mean(h2)
         OFDM_Symbols_PREFFT1 = CP_Remove(afterchannelsignal1,50);
-        OFDM_Symbols_Post1=fft(OFDM_Symbols_PREFFT1);
+        OFDM_Symbols_Post1=fft(OFDM_Symbols_PREFFT1./sqrt(1024));
  channelEffect1= fft(h1  , 1024);
    OFDM_Symbols1=(OFDM_Symbols_Post1.')./channelEffect1;
         
@@ -101,7 +101,7 @@ for EbNo=EbNo_range
         % Receiver %%%%%%%%%%%%%%%%%%%%%%
         
         OFDM_Symbols_PREFFT2 = CP_Remove(afterchannelsignal2,50);
-        OFDM_Symbols_Post2=fft(OFDM_Symbols_PREFFT2);
+        OFDM_Symbols_Post2=fft(OFDM_Symbols_PREFFT2./sqrt(1024));
  channelEffect2= fft(h2  , 1024);
    OFDM_Symbols2=(OFDM_Symbols_Post2.')./channelEffect2;
       OFDM_Symbols=  OFDM_Symbols2;
@@ -158,8 +158,16 @@ for EbNo=EbNo_range
 
 end
 %% Plotting BER vs EbNo
+
+PeLogScale=10*log(Pe);
 semilogy(EbNo_range(1:length(Pe)),Pe,'linewidth',2,'marker','o');
 xlabel('Eb/No (dB)')
 ylabel('Pe')
+hold on
+grid on
+figure; 
+semilogy(EbNo_range(1:length(PeLogScale)),PeLogScale,'linewidth',2,'marker','o');
+xlabel('Eb/No (dB)')
+ylabel('Pe in log scale')
 hold on
 grid on
