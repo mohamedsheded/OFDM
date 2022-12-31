@@ -33,7 +33,7 @@ for EbNo=EbNo_range
     sum_prob_error=0;
     
     for frame=1:NumberFramesPerSNR
-%        for i=1:100 
+%        for i=1:1000 
         % Print the frame index to track the code progression
         if mod(frame,100)==0
             frame;
@@ -88,8 +88,8 @@ for EbNo=EbNo_range
  channelEffect= fft(h1  , 1024);
    OFDM_Symbols=(OFDM_Symbols_Post.')./channelEffect;
       else 
-        % Receiver %%%%%%%%%%%%%%%%%%%%%%
-        if mean(h1)>mean(h2)
+        % Receiver  selection combining %%%%%%%%%%%%%%%%%%%%%%
+        if norm(h1)>norm(h2)
         OFDM_Symbols_PREFFT1 = CP_Remove(afterchannelsignal1,50);
         OFDM_Symbols_Post1=fft(OFDM_Symbols_PREFFT1./sqrt(1024));
  channelEffect1= fft(h1  , 1024);
