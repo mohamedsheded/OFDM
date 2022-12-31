@@ -6,11 +6,12 @@ close all;
 
 %Simulation Parameters
 EbNo_range=[0:3:40];                            %Eb/No range of simulation dB
-NumberFramesPerSNR=100;                         %Number of frames sent for every SNR value
-ModulationOrder=16;                              %The number of sent waveforms (M)
+NumberFramesPerSNR=1000;                         %Number of frames sent for every SNR value
+ModulationOrder=64;                              %The number of sent waveforms (M)
 NumberBitsPerFrame=floor((1024*log2(ModulationOrder)/7)*4)-4;   %Number of bits sent for every frame
 %Modulation type 1:MASK, 2:MPSK, 3:MQAM
 NoOfOp=2;
+
 
 % BER Loop
 Pe=[];
@@ -33,7 +34,7 @@ for EbNo=EbNo_range
     sum_prob_error=0;
     
     for frame=1:NumberFramesPerSNR
-%        for i=1:1000 
+%      for i=1:10 
         % Print the frame index to track the code progression
         if mod(frame,100)==0
             frame;
@@ -75,37 +76,57 @@ for EbNo=EbNo_range
         %----------------------------Channel part----------------------
         %---------------------------------------------------------------------
         Symbol_stream_Transformed=ifft(Symbol_stream.*sqrt(1024),1024);
-  Transmitted_Signal = cyclic_prefix(Symbol_stream_Transformed, 50);
-        
+%   Transmitted_Signal = cyclic_prefix(Symbol_stream_Transformed, 50);
+        Transmitted_Signal=Symbol_stream_Transformed;
 %         
-    [RX_Symbols1 , RX_Symbols2,h1,h2]  = Channel(Transmitted_Signal , EbNo , 2 , 2);
+    [RX_Symbols1 , RX_Symbols2]  = Channel(Transmitted_Signal , EbNo , 1, NoOfOp);
      afterchannelsignal1=RX_Symbols1;
       afterchannelsignal2 =RX_Symbols2;
 
       if NoOfOp==1
-        OFDM_Symbols_PREFFT = CP_Remove(afterchannelsignal1,50);
-        OFDM_Symbols_Post=fft(OFDM_Symbols_PREFFT./sqrt(1024));
- channelEffect= fft(h1  , 1024);
-   OFDM_Symbols=(OFDM_Symbols_Post.')./channelEffect;
+          %siso fading
+%         OFDM_Symbols_PREFFT1 = CP_Remove(afterchannelsignal1,50);
+%awgn
+        OFDM_Symbols_PREFFT1=afterchannelsignal1;
+        %fading
+%  channelEffect= fft(h1  , 1024);
+
+OFDM_Symbols=fft(OFDM_Symbols_PREFFT1./sqrt(1024));
+%fading
+%    OFDM_Symbols=(OFDM_Symbols_Post.')./channelEffect;
+%awgn
+ OFDM_Symbols=(OFDM_Symbols.');
       else 
         % Receiver  selection combining %%%%%%%%%%%%%%%%%%%%%%
-        if norm(h1)>norm(h2)
-        OFDM_Symbols_PREFFT1 = CP_Remove(afterchannelsignal1,50);
-        OFDM_Symbols_Post1=fft(OFDM_Symbols_PREFFT1./sqrt(1024));
- channelEffect1= fft(h1  , 1024);
-   OFDM_Symbols1=(OFDM_Symbols_Post1.')./channelEffect1;
-        
-         OFDM_Symbols=  OFDM_Symbols1;
-        else
-        
-        % Receiver %%%%%%%%%%%%%%%%%%%%%%
-        
-        OFDM_Symbols_PREFFT2 = CP_Remove(afterchannelsignal2,50);
-        OFDM_Symbols_Post2=fft(OFDM_Symbols_PREFFT2./sqrt(1024));
- channelEffect2= fft(h2  , 1024);
-   OFDM_Symbols2=(OFDM_Symbols_Post2.')./channelEffect2;
-      OFDM_Symbols=  OFDM_Symbols2;
-        end
+        %%%%%%%%%SIMOAWGN
+       OFDM_Symbols_PREFFT1=(afterchannelsignal1);
+       OFDM_Symbols1=fft(OFDM_Symbols_PREFFT1./sqrt(1024));
+       
+              
+ OFDM_Symbols_PREFFT2=afterchannelsignal2;
+         OFDM_Symbols_Post2=fft(OFDM_Symbols_PREFFT2./sqrt(1024));
+        OFDM_Symbols=(OFDM_Symbols_Post2+OFDM_Symbols1)./2;
+         OFDM_Symbols=(OFDM_Symbols.');
+       %%%% SIMO FADING
+%         if norm(h1)>norm(h2)
+% %         OFDM_Symbols_PREFFT1 = CP_Remove(afterchannelsignal1,50);
+% OFDM_Symbols_PREFFT1=afterchannelsignal1;
+%         OFDM_Symbols_Post1=fft(OFDM_Symbols_PREFFT1./sqrt(1024));
+%  channelEffect1= fft(h1  , 1024);
+%    OFDM_Symbols1=(OFDM_Symbols_Post1.')./channelEffect1;
+%         
+%          OFDM_Symbols=  OFDM_Symbols1;
+%         else
+%         
+%         % Receiver %%%%%%%%%%%%%%%%%%%%%%
+%         
+% %         OFDM_Symbols_PREFFT2 = CP_Remove(afterchannelsignal2,50);
+% OFDM_Symbols_PREFFT2=afterchannelsignal2;
+%         OFDM_Symbols_Post2=fft(OFDM_Symbols_PREFFT2./sqrt(1024));
+%  channelEffect2= fft(h2  , 1024);
+%    OFDM_Symbols2=(OFDM_Symbols_Post2.')./channelEffect2;
+%       OFDM_Symbols=  OFDM_Symbols2;
+%         end
       end
 %         (1:length(encoder_output_stream));
         
@@ -152,8 +173,8 @@ for EbNo=EbNo_range
         prob_error_frame=sum(xor(Bits,double(decoder_output_Stream)))/NumberBitsPerFrame;
         sum_prob_error=sum_prob_error+prob_error_frame;
         
-%     end
     end
+%     end
      Pe=[Pe sum_prob_error/NumberFramesPerSNR];
 
 end
